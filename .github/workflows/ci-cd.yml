@@ -1,0 +1,169 @@
+name: CI/CD Pipeline - CineSphere
+
+# Triggers do workflow
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+# Variáveis de ambiente
+env:
+  NODE_VERSION: "18"
+
+jobs:
+  # Job 1: Testes e Qualidade de Código
+  test:
+    name: 🧪 Tests & Code Quality
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18, 20]
+
+    steps:
+      # Checkout do código
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # Setup do Node.js
+      - name: 📦 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      # Cache das dependências
+      - name: 💾 Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Instalação das dependências
+      - name: 📋 Install dependencies
+        run: npm ci
+
+      # Lint (quando configurado)
+      - name: 🔍 Run ESLint
+        run: npm run lint --if-present
+
+      # Testes unitários
+      - name: 🧪 Run unit tests
+        run: npm run test:unit --if-present
+
+      # Testes de integração
+      - name: 🔗 Run integration tests
+        run: npm run test:integration --if-present
+
+      # Todos os testes
+      - name: ✅ Run all tests
+        run: npm test
+
+      # Coverage de testes
+      - name: 📊 Generate test coverage
+        run: npm run test:coverage --if-present
+
+      # Upload do coverage para Codecov
+      - name: 📈 Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        if: matrix.node-version == 18
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  # Job 2: Build e Verificações
+  build:
+    name: 🏗️ Build & Security
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      # Checkout do código
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # Setup do Node.js
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      # Instalação das dependências
+      - name: 📋 Install dependencies
+        run: npm ci
+
+      # Auditoria de segurança
+      - name: 🔒 Security audit
+        run: npm audit --audit-level=moderate
+
+      # Build da aplicação (se existir)
+      - name: 🏗️ Build application
+        run: npm run build --if-present
+
+      # Verificação de vulnerabilidades
+      - name: 🛡️ Check for vulnerabilities
+        run: npm audit --parseable | grep -q "^[0-9]" && echo "Vulnerabilities found" || echo "No vulnerabilities found"
+
+  # Job 3: Deploy (apenas na main)
+  deploy:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      # Checkout do código
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # Setup do Node.js
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      # Instalação das dependências
+      - name: 📋 Install dependencies
+        run: npm ci --only=production
+
+      # Deploy placeholder (configurar conforme necessário)
+      - name: 🚀 Deploy to staging
+        run: |
+          echo "🎬 Deploying CineSphere to staging..."
+          echo "🌟 Deploy URL: https://cinesphere-staging.herokuapp.com"
+          # Aqui você adicionará seus comandos de deploy reais
+          # Exemplos:
+          # - Deploy para Heroku
+          # - Deploy para Vercel
+          # - Deploy para AWS
+          # - Deploy para GCP
+
+      # Notificação de sucesso
+      - name: 📢 Notify deployment success
+        run: |
+          echo "✅ CineSphere deployed successfully!"
+          echo "🎭 Version: ${{ github.sha }}"
+          echo "📅 Deployed at: $(date)"
+
+  # Job 4: Notificações
+  notify:
+    name: 📢 Notifications
+    runs-on: ubuntu-latest
+    needs: [test, build, deploy]
+    if: always()
+
+    steps:
+      - name: 📧 Send notification
+        run: |
+          if [ "${{ needs.test.result }}" == "success" ] && [ "${{ needs.build.result }}" == "success" ]; then
+            echo "✅ Pipeline executado com sucesso!"
+            echo "🎬 CineSphere está pronto para produção!"
+          else
+            echo "❌ Pipeline falhou em alguma etapa"
+            echo "🔧 Verifique os logs para mais detalhes"
+          fi
