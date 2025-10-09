@@ -1,6 +1,7 @@
 {
   "displayName": "CineSphere Tests",
   "testEnvironment": "node",
+  "maxWorkers": "50%",
   "collectCoverageFrom": ["src/**/*.js", "!src/test/**", "!**/node_modules/**"],
   "coverageDirectory": "coverage",
   "coverageReporters": ["text", "lcov", "html"],
