@@ -1,0 +1,14 @@
+{
+  "displayName": "CineSphere Tests",
+  "testEnvironment": "node",
+  "collectCoverageFrom": ["src/**/*.js", "!src/test/**", "!**/node_modules/**"],
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["text", "lcov", "html"],
+  "testMatch": ["**/src/test/**/*.test.js", "**/src/test/**/*.spec.js"],
+  "testPathIgnorePatterns": ["/node_modules/"],
+  "verbose": true,
+  "forceExit": true,
+  "clearMocks": true,
+  "resetMocks": true,
+  "restoreMocks": true
+}

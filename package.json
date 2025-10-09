@@ -4,8 +4,15 @@
   "description": "Uma API de biblioteca de filmes para classificar e sugerir títulos.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest",
+    "test:unit": "jest src/test/unit --coverage",
+    "test:integration": "jest src/test/integration",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "echo 'ESLint não configurado ainda'",
+    "build": "echo 'Build step - não necessário para Node.js puro'"
   },
   "repository": {
     "type": "git",
