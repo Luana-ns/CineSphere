@@ -21,7 +21,6 @@ logs
 
 # Build
 dist/
-build/
 
 # Cache
 .cache/

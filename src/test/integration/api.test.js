@@ -1,6 +1,5 @@
-// Teste de integração de exemplo
-const request = require("supertest");
-const express = require("express");
+import express from "express";
+import request from "supertest";
 
 // Simula uma versão básica da aplicação para teste
 const createTestApp = () => {
